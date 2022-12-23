@@ -16,7 +16,13 @@ public class Token {
 
     @Id
     @GeneratedValue(
-            strategy = GenerationType.AUTO
+            strategy = GenerationType.SEQUENCE,
+            generator = "token_sequence"
+    )
+    @SequenceGenerator(
+            name = "token_sequence",
+            sequenceName = "token_sequence",
+            allocationSize = 1
     )
     private Long id;
     private Long wallet_id;
