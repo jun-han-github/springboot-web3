@@ -21,16 +21,12 @@ public class Price {
     private String symbol;
     private String source;
     private double bidPrice;
-    private double bidQty;
     private double askPrice;
-    private double askQty;
 
     public Price(String symbol, String source, double bidPrice, double bidQty, double askPrice, double askQty) {
         this.symbol = symbol;
         this.source = source;
         this.bidPrice = bidPrice;
-        this.bidQty = bidQty;
         this.askPrice = askPrice;
-        this.askQty = askQty;
     }
 }
