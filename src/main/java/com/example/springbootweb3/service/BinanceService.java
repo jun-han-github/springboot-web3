@@ -1,5 +1,6 @@
 package com.example.springbootweb3.service;
 
+import com.example.springbootweb3.model.Price;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,7 +27,7 @@ public class BinanceService {
         Mono<String> result = client.get().uri(BOOKTICKER_API + "?symbol=" + symbol.toUpperCase()).retrieve().bodyToMono(String.class);
         return ResponseEntity.ok(result);
     }
-    public Mono<Double> getPrice(String symbol, String type) {
+    public Mono<Price> getPrice(String symbol) {
         WebClient client = WebClient.create(BINANCE_BASE_URL);
 
         return client.get().uri(BOOKTICKER_API + "?symbol=" + symbol.toUpperCase()).retrieve().bodyToMono(String.class).map(response -> {
@@ -39,9 +40,20 @@ public class BinanceService {
                     throw new IllegalArgumentException("Symbol not found");
                 }
 
-                // Retrieve the bid value, response is {}, so can just .get()
-                return root.get(type).asDouble();
+                // fill up Price entity with symbol, source (eg. Houbi or Binance), bidPrice and askPrice
+                String tokenSymbol = root.get("symbol").asText();
+                double bidPrice = root.get("bidPrice").asDouble();
+                double askPrice = root.get("askPrice").asDouble();
 
+                // Create a new Price object with the extracted values
+                Price price = new Price();
+                price.setSymbol(tokenSymbol);
+                price.setSource("Binance");
+                price.setBidPrice(bidPrice);
+                price.setAskPrice(askPrice);
+
+                // Return the Price object
+                return price;
             } catch (JsonProcessingException e) {
 
                 throw new RuntimeException();
@@ -49,11 +61,11 @@ public class BinanceService {
         });
     }
 
-    public Mono<Double> getBidPrice(String tokenSymbol) {
-        return getPrice(tokenSymbol, "bidPrice");
+    public Double getBidPrice(String tokenSymbol) {
+        return getPrice(tokenSymbol).block().getBidPrice();
     }
 
-    public Mono<Double> getAskPrice(String tokenSymbol) {
-        return getPrice(tokenSymbol, "askPrice");
+    public Double getAskPrice(String tokenSymbol) {
+        return getPrice(tokenSymbol).block().getAskPrice();
     }
 }

@@ -29,8 +29,8 @@ public class PriceService {
     * */
     public Double bestBidPrice(String tokenSymbol) {
         try {
-            Double binanceBidPrice = binanceService.getBidPrice(tokenSymbol).block();
-            Double houbiBidPrice = houbiService.getBidPrice(tokenSymbol).block();
+            Double binanceBidPrice = binanceService.getBidPrice(tokenSymbol);
+            Double houbiBidPrice = houbiService.getBidPrice(tokenSymbol);
 
 
             return Math.max(binanceBidPrice, houbiBidPrice);
@@ -48,8 +48,8 @@ public class PriceService {
      * */
     public Double bestAskPrice(String tokenSymbol) {
         try {
-            Double binanceAskPrice = binanceService.getAskPrice(tokenSymbol).block();
-            Double houbiAskPrice = houbiService.getAskPrice(tokenSymbol).block();
+            Double binanceAskPrice = binanceService.getAskPrice(tokenSymbol);
+            Double houbiAskPrice = houbiService.getAskPrice(tokenSymbol);
 
             return Math.min(binanceAskPrice, houbiAskPrice);
         } catch (Exception e) {

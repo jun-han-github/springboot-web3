@@ -1,5 +1,6 @@
 package com.example.springbootweb3.service;
 
+import com.example.springbootweb3.model.Price;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,7 +23,7 @@ public class HoubiService {
         return ResponseEntity.ok(result);
     }
 
-    public Mono<Double> getPrice(String symbol, String type) {
+    public Mono<Price> getPrice(String symbol) {
         WebClient client = WebClient.create(HOUBI_BASE_URL);
 
         return client.get().uri("/market/tickers").retrieve().bodyToMono(String.class).map(response -> {
@@ -48,7 +49,19 @@ public class HoubiService {
                 }
 
                 // Retrieve the bid value, response is [{},{}], so we check if it's array, and we loop the array
-                return filtered.get(type).asDouble();
+                // fill up Price entity with symbol, source (eg. Houbi or Binance), bidPrice and askPrice
+                String tokenSymbol = filtered.get("symbol").asText();
+                double bidPrice = filtered.get("bid").asDouble();
+                double askPrice = filtered.get("ask").asDouble();
+
+                // Create a new Price object with the extracted values
+                Price price = new Price();
+                price.setSymbol(tokenSymbol);
+                price.setSource("Houbi");
+                price.setBidPrice(bidPrice);
+                price.setAskPrice(askPrice);
+
+                return price;
 
             } catch (JsonProcessingException e) {
 
@@ -57,11 +70,11 @@ public class HoubiService {
         });
     }
 
-    public Mono<Double> getBidPrice(String tokenSymbol) {
-      return getPrice(tokenSymbol, "bid");
+    public Double getBidPrice(String tokenSymbol) {
+      return getPrice(tokenSymbol).block().getBidPrice();
     }
 
-    public Mono<Double> getAskPrice(String tokenSymbol) {
-      return getPrice(tokenSymbol, "ask");
+    public Double getAskPrice(String tokenSymbol) {
+      return getPrice(tokenSymbol).block().getAskPrice();
     }
 }
