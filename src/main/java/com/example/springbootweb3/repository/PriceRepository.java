@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PriceRepository extends JpaRepository<Price, Long> {
+    Price findBySymbol(String symbol);
 }

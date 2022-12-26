@@ -3,9 +3,12 @@ package com.example.springbootweb3.service;
 import com.example.springbootweb3.model.Price;
 import com.example.springbootweb3.repository.PriceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
 
 @Service
 public class PriceService {
@@ -16,13 +19,31 @@ public class PriceService {
     @Autowired
     private HoubiService houbiService;
 
-
     // Scheduled job for every 10 seconds
-//    @Scheduled(fixedRate = 10000)
+    @Scheduled(fixedRate = 10000)
     public void updatePriceInDB() {
-        // this needs to be real-time data
-        Price price = new Price();
-        repository.save(price);
+        List<String> watchList = Arrays.asList("ETHUSDT", "BTCUSDT");
+        for (String tokenSymbol : watchList) {
+            Price price = repository.findBySymbol(tokenSymbol);
+            Price bidPrice = bestPrice(tokenSymbol, "bid");
+            Price askPrice = bestPrice(tokenSymbol, "ask");
+
+            if (bidPrice == null || askPrice == null) {
+                throw new NullPointerException();
+            }
+
+            if (price == null) {
+                Price newPrice = new Price();
+                newPrice.setSymbol(tokenSymbol);
+                newPrice.setBidPrice(bidPrice.getBidPrice());
+                newPrice.setAskPrice((askPrice.getAskPrice()));
+                repository.save(newPrice);
+            } else {
+                price.setBidPrice(bidPrice.getBidPrice());
+                price.setAskPrice(bidPrice.getAskPrice());
+                repository.saveAndFlush(price);
+            }
+        }
     }
 
     /*
