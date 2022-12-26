@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 public class TokenService {
@@ -16,6 +17,10 @@ public class TokenService {
     public Token getToken(String symbol) {
         // if multiple user, need to find by Id too
         return repository.findBySymbol(symbol);
+    }
+
+    public List<Token> getTokenByWalletId(Long walletId) {
+        return repository.findAllByWalletId(walletId);
     }
 
     public Token saveToken(Token token) {

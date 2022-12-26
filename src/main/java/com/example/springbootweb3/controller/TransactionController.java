@@ -4,10 +4,7 @@ import com.example.springbootweb3.model.Price;
 import com.example.springbootweb3.model.Token;
 import com.example.springbootweb3.model.Transaction;
 import com.example.springbootweb3.repository.TransactionRepository;
-import com.example.springbootweb3.service.BinanceService;
-import com.example.springbootweb3.service.HoubiService;
-import com.example.springbootweb3.service.PriceService;
-import com.example.springbootweb3.service.TokenService;
+import com.example.springbootweb3.service.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,6 +29,8 @@ public class TransactionController {
     private BinanceService binanceService;
     @Autowired
     private HoubiService houbiService;
+    @Autowired
+    private WalletService walletService;
 
     @GetMapping("/{address}")
     public ResponseEntity<List<Transaction>> getAllTransactions(@PathVariable String address) {
@@ -50,6 +49,7 @@ public class TransactionController {
         String tokenSymbol = orderDetails.get("symbol").asText();
         String quoteSymbol = orderDetails.get("quote").asText(); // USDT
         BigDecimal amount = orderDetails.get("amount").decimalValue();
+        Long walletId = orderDetails.get("wallet_id").asLong();
 
         // best ask price appears here
         Price bestPrice = priceService.bestPrice(tokenSymbol, "ask");
@@ -83,6 +83,9 @@ public class TransactionController {
         newTxn.setTimestamp(LocalDateTime.now());
         repository.save(newTxn);
 
+        // update wallet balance
+        walletService.updateWalletBalance(walletId);
+
         return new ResponseEntity<>(newTxn, HttpStatus.OK);
     }
     @PostMapping("/sell")
@@ -91,6 +94,7 @@ public class TransactionController {
         String tokenSymbol = orderDetails.get("symbol").asText();
         String quoteSymbol = orderDetails.get("quote").asText();
         BigDecimal amount = orderDetails.get("amount").decimalValue();
+        Long walletId = orderDetails.get("wallet_id").asLong();
 
         // best bid price appears here
         Price bestPrice = priceService.bestPrice(tokenSymbol, "bid");
@@ -123,6 +127,9 @@ public class TransactionController {
         newTxn.setSource(bestPrice.getSource());
         newTxn.setTimestamp(LocalDateTime.now());
         repository.save(newTxn);
+
+        // update wallet balance
+        walletService.updateWalletBalance(walletId);
 
         return new ResponseEntity<>(newTxn, HttpStatus.OK);
     }

@@ -33,8 +33,8 @@ public class PriceService {
      * */
     public Price bestPrice(String tokenSymbol, String action) {
         try {
-            Price binance = binanceService.getPrice(tokenSymbol).block();
-            Price houbi = houbiService.getPrice(tokenSymbol).block();
+            Price binance = binanceService.getPrice(tokenSymbol.toUpperCase()).block();
+            Price houbi = houbiService.getPrice(tokenSymbol.toLowerCase()).block();
 
 
             // It's either ask or bid
