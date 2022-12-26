@@ -3,6 +3,8 @@ package com.example.springbootweb3.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Data
 @Entity
 @AllArgsConstructor
@@ -10,23 +12,21 @@ import lombok.*;
 @Table(name="price")
 @Getter
 @Setter
-@ToString
 public class Price {
 
     @Id
     @GeneratedValue(
-            strategy = GenerationType.AUTO
+            strategy = GenerationType.SEQUENCE,
+            generator = "price_sequence"
+    )
+    @SequenceGenerator(
+            name = "price_sequence",
+            sequenceName = "price_sequence",
+            allocationSize = 1
     )
     private Long id;
     private String symbol;
     private String source;
-    private double bidPrice;
-    private double askPrice;
-
-    public Price(String symbol, String source, double bidPrice, double bidQty, double askPrice, double askQty) {
-        this.symbol = symbol;
-        this.source = source;
-        this.bidPrice = bidPrice;
-        this.askPrice = askPrice;
-    }
+    private BigDecimal bidPrice;
+    private BigDecimal askPrice;
 }

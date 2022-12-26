@@ -18,11 +18,11 @@ public class Transaction {
     @Id
     @GeneratedValue(
             strategy = GenerationType.SEQUENCE,
-            generator = "txn_sequence"
+            generator = "transaction_sequence"
     )
     @SequenceGenerator(
-            name = "txn_sequence",
-            sequenceName = "txn_sequence",
+            name = "transaction_sequence",
+            sequenceName = "transaction_sequence",
             allocationSize = 1
     )
     private Long id;
@@ -31,6 +31,6 @@ public class Transaction {
     private String type; // Buy or Sell
     private BigDecimal amount;
     private BigDecimal price;
-    private String status; // success, failed
+    private String source;
     private LocalDateTime timestamp;
 }

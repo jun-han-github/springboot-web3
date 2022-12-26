@@ -9,7 +9,6 @@ import java.math.BigDecimal;
 @Entity
 @Table(name="token")
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
 public class Token {
@@ -28,4 +27,10 @@ public class Token {
     private Long wallet_id;
     private String symbol;
     private BigDecimal balance;
+
+    public Token(Long wallet_id, String symbol, BigDecimal balance) {
+        this.wallet_id = wallet_id;
+        this.symbol = symbol;
+        this.balance = balance;
+    }
 }

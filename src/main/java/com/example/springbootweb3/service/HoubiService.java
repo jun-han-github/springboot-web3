@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
 import java.util.stream.StreamSupport;
 
 @Service
@@ -26,7 +27,7 @@ public class HoubiService {
     public Mono<Price> getPrice(String symbol) {
         WebClient client = WebClient.create(HOUBI_BASE_URL);
 
-        return client.get().uri("/market/tickers").retrieve().bodyToMono(String.class).map(response -> {
+        Mono<Price> result = client.get().uri("/market/tickers").retrieve().bodyToMono(String.class).map(response -> {
             try {
                 // Parse the response into a JsonNode object
                 ObjectMapper mapper = new ObjectMapper();
@@ -40,7 +41,7 @@ public class HoubiService {
 
                 // Filter the data array to include only the element with the specified symbol
                 JsonNode filtered = StreamSupport.stream(data.spliterator(), false)
-                        .filter(node -> node.get("symbol").asText().equals(symbol))
+                        .filter(node -> node.get("symbol").asText().equals( symbol.toLowerCase() ))
                         .findFirst()
                         .orElse(null);
 
@@ -51,8 +52,8 @@ public class HoubiService {
                 // Retrieve the bid value, response is [{},{}], so we check if it's array, and we loop the array
                 // fill up Price entity with symbol, source (eg. Houbi or Binance), bidPrice and askPrice
                 String tokenSymbol = filtered.get("symbol").asText();
-                double bidPrice = filtered.get("bid").asDouble();
-                double askPrice = filtered.get("ask").asDouble();
+                BigDecimal bidPrice = new BigDecimal( filtered.get("bid").asText() );
+                BigDecimal askPrice = new BigDecimal( filtered.get("ask").asText() );
 
                 // Create a new Price object with the extracted values
                 Price price = new Price();
@@ -68,13 +69,6 @@ public class HoubiService {
                 throw new RuntimeException();
             }
         });
-    }
-
-    public Double getBidPrice(String tokenSymbol) {
-      return getPrice(tokenSymbol).block().getBidPrice();
-    }
-
-    public Double getAskPrice(String tokenSymbol) {
-      return getPrice(tokenSymbol).block().getAskPrice();
+        return result;
     }
 }

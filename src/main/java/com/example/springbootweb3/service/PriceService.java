@@ -5,6 +5,8 @@ import com.example.springbootweb3.repository.PriceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+
 @Service
 public class PriceService {
     @Autowired
@@ -14,44 +16,60 @@ public class PriceService {
     @Autowired
     private HoubiService houbiService;
 
+
     // Scheduled job for every 10 seconds
 //    @Scheduled(fixedRate = 10000)
     public void updatePriceInDB() {
         // this needs to be real-time data
-        Price price = new Price("BTCUSDT", "Houbi", 16825.77000000, 0.00312000, 16825.88000000, 0.00010000);
+        Price price = new Price();
         repository.save(price);
     }
 
     /*
-    * Math.max() is used because when we sell,
-    * we want the higher bidding price
-    *
-    * */
-    public Double bestBidPrice(String tokenSymbol) {
-        try {
-            Double binanceBidPrice = binanceService.getBidPrice(tokenSymbol);
-            Double houbiBidPrice = houbiService.getBidPrice(tokenSymbol);
-
-
-            return Math.max(binanceBidPrice, houbiBidPrice);
-
-        } catch (Exception e) {
-            throw new RuntimeException();
-        }
-    }
-
-
-    /*
-     * Math.min() is used because when we buy,
-     * we want the lower asking price
+     * when we buy, we want the lower asking price
+     *
+     * When we sell, we want the higher bidding price
      *
      * */
-    public Double bestAskPrice(String tokenSymbol) {
+    public Price bestPrice(String tokenSymbol, String action) {
         try {
-            Double binanceAskPrice = binanceService.getAskPrice(tokenSymbol);
-            Double houbiAskPrice = houbiService.getAskPrice(tokenSymbol);
+            Price binance = binanceService.getPrice(tokenSymbol).block();
+            Price houbi = houbiService.getPrice(tokenSymbol).block();
 
-            return Math.min(binanceAskPrice, houbiAskPrice);
+
+            // It's either ask or bid
+            if (action == "ask") {
+                BigDecimal binanceAskPrice = binance.getAskPrice();
+                BigDecimal houbiAskPrice = houbi.getAskPrice();
+
+                if (binanceAskPrice != null && houbiAskPrice != null) {
+                    if (binanceAskPrice.compareTo(houbiAskPrice) < 0) {
+                        return binance;
+                    } else {
+                        return houbi;
+                    }
+                } else {
+                    throw new NullPointerException();
+                }
+            }
+
+            if (action == "bid") {
+                BigDecimal binanceBidPrice = binance.getBidPrice();
+                BigDecimal houbiBidPrice = houbi.getBidPrice();
+
+                if (binanceBidPrice != null && houbiBidPrice != null) {
+                    if (binanceBidPrice.compareTo(houbiBidPrice) > 0) {
+                        return binance;
+                    } else {
+                        return houbi;
+                    }
+                } else {
+                    throw new NullPointerException();
+                }
+            }
+
+            return null;
+
         } catch (Exception e) {
             throw new RuntimeException();
         }

@@ -1,5 +1,6 @@
 package com.example.springbootweb3.controller;
 
+import com.example.springbootweb3.model.Price;
 import com.example.springbootweb3.service.BinanceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,7 @@ public class BinanceController {
     *
     * */
     @GetMapping("/{symbol}")
-    public ResponseEntity<Mono<String>> getOneBookTicker(@PathVariable String symbol) {
-        return service.getOneBookTicker(symbol);
+    public Mono<Price> getOneBookTicker(@PathVariable String symbol) {
+        return service.getPrice(symbol);
     }
 }

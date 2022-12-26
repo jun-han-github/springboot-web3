@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
+
 @Service
 public class BinanceService {
 
@@ -22,15 +24,9 @@ public class BinanceService {
         return ResponseEntity.ok(result);
     }
 
-    public ResponseEntity<Mono<String>> getOneBookTicker(String symbol) {
-        WebClient client = WebClient.create(BINANCE_BASE_URL);
-        Mono<String> result = client.get().uri(BOOKTICKER_API + "?symbol=" + symbol.toUpperCase()).retrieve().bodyToMono(String.class);
-        return ResponseEntity.ok(result);
-    }
     public Mono<Price> getPrice(String symbol) {
         WebClient client = WebClient.create(BINANCE_BASE_URL);
-
-        return client.get().uri(BOOKTICKER_API + "?symbol=" + symbol.toUpperCase()).retrieve().bodyToMono(String.class).map(response -> {
+        Mono<Price> result = client.get().uri(BOOKTICKER_API + "?symbol=" + symbol.toUpperCase()).retrieve().bodyToMono(String.class).map(response -> {
             try {
                 // Parse the response into a JsonNode object
                 ObjectMapper mapper = new ObjectMapper();
@@ -42,8 +38,8 @@ public class BinanceService {
 
                 // fill up Price entity with symbol, source (eg. Houbi or Binance), bidPrice and askPrice
                 String tokenSymbol = root.get("symbol").asText();
-                double bidPrice = root.get("bidPrice").asDouble();
-                double askPrice = root.get("askPrice").asDouble();
+                BigDecimal bidPrice = new BigDecimal( root.get("bidPrice").asText() );
+                BigDecimal askPrice = new BigDecimal( root.get("askPrice").asText() );
 
                 // Create a new Price object with the extracted values
                 Price price = new Price();
@@ -52,20 +48,12 @@ public class BinanceService {
                 price.setBidPrice(bidPrice);
                 price.setAskPrice(askPrice);
 
-                // Return the Price object
                 return price;
-            } catch (JsonProcessingException e) {
 
-                throw new RuntimeException();
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("JSON Processing Exception: ", e);
             }
         });
-    }
-
-    public Double getBidPrice(String tokenSymbol) {
-        return getPrice(tokenSymbol).block().getBidPrice();
-    }
-
-    public Double getAskPrice(String tokenSymbol) {
-        return getPrice(tokenSymbol).block().getAskPrice();
+        return result;
     }
 }
